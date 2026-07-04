@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>YT Downloader</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+
+<style>
+/* ── reset & tokens ─────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:        #080808;
+  --s1:        #101010;
+  --s2:        #181818;
+  --s3:        #202020;
+  --border:    #2c2c2c;
+  --border2:   #383838;
+  --red:       #ff2d2d;
+  --red-dim:   #cc2222;
+  --red-glow:  rgba(255,45,45,.18);
+  --red-glow2: rgba(255,45,45,.08);
+  --white:     #f2f2f2;
+  --grey:      #666;
+  --grey2:     #444;
+  --success:   #2dff8f;
+  --warn:      #ffcc2d;
+  --radius:    10px;
+  --mono:      'IBM Plex Mono', monospace;
+  --sans:      'DM Sans', sans-serif;
+  --display:   'Bebas Neue', sans-serif;
+}
+
+html { font-size: 16px; }
+
+body {
+  background: var(--bg);
+  color: var(--white);
+  font-family: var(--sans);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── noise overlay ──────────────────────────────────────────────── */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+  opacity: .025;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── grid lines background ──────────────────────────────────────── */
+body::after {
+  content: '';
+  position: fixed; inset: 0;
+  background-image:
+    linear-gradient(var(--s2) 1px, transparent 1px),
+    linear-gradient(90deg, var(--s2) 1px, transparent 1px);
+  background-size: 48px 48px;
+  opacity: .4;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── layout ─────────────────────────────────────────────────────── */
+.wrap {
+  position: relative; z-index: 1;
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 40px 20px 80px;
+}
+
+/* ── header ─────────────────────────────────────────────────────── */
+header {
+  text-align: center;
+  margin-bottom: 48px;
+}
+
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+
+.logo-icon {
+  width: 44px; height: 44px;
+  background: var(--red);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 0 24px var(--red-glow);
+  animation: pulse 3s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 20px var(--red-glow); }
+  50%       { box-shadow: 0 0 40px rgba(255,45,45,.35); }
+}
+
+.logo-icon svg { width: 22px; height: 22px; fill: #fff; }
+
+h1 {
+  font-family: var(--display);
+  font-size: clamp(2.4rem, 6vw, 3.8rem);
+  letter-spacing: .08em;
+  line-height: 1;
+  color: var(--white);
+}
+
+h1 span { color: var(--red); }
+
+.tagline {
+  font-family: var(--mono);
+  font-size: .72rem;
+  color: var(--grey);
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  margin-top: 8px;
+}
+
+/* ── card ───────────────────────────────────────────────────────── */
+.card {
+  background: var(--s1);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 28px 28px 24px;
+  margin-bottom: 16px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color .2s;
+}
+
+.card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg,
+    transparent, var(--red-glow), var(--red), var(--red-glow), transparent);
+  opacity: 0;
+  transition: opacity .3s;
+}
+
+.card:focus-within::before { opacity: 1; }
+.card:focus-within { border-color: var(--border2); }
+
+.card-label {
+  font-family: var(--mono);
+  font-size: .65rem;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: var(--red);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.card-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* ── preview ────────────────────────────────────────────────────── */
+#preview {
+  display: none;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 0 18px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 18px;
+  animation: fadeIn .3s ease;
+}
+
+@keyframes fadeIn { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:none; } }
+
+#preview.show { display: flex; }
+
+.thumb-wrap {
+  width: 88px; height: 60px;
+  border-radius: 7px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: var(--s3);
+  border: 1px solid var(--border);
+}
+
+.thumb-wrap img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+}
+
+.preview-info { flex: 1; min-width: 0; }
+
+.preview-title {
+  font-weight: 600;
+  font-size: .92rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 4px;
+}
+
+.preview-meta {
+  font-family: var(--mono);
+  font-size: .68rem;
+  color: var(--grey);
+}
+
+/* ── URL input ──────────────────────────────────────────────────── */
+.url-row {
+  display: flex;
+  gap: 10px;
+}
+
+#url-input {
+  flex: 1;
+  background: var(--s2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  color: var(--white);
+  font-family: var(--mono);
+  font-size: .82rem;
+  outline: none;
+  transition: border-color .2s, box-shadow .2s;
+  min-width: 0;
+}
+
+#url-input::placeholder { color: var(--grey2); }
+
+#url-input:focus {
+  border-color: var(--red);
+  box-shadow: 0 0 0 3px var(--red-glow2), inset 0 0 0 1px var(--red-glow);
+}
+
+.btn-inspect {
+  background: var(--s3);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  color: var(--grey);
+  font-family: var(--mono);
+  font-size: .72rem;
+  letter-spacing: .08em;
+  padding: 12px 16px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all .2s;
+}
+
+.btn-inspect:hover {
+  background: var(--s2);
+  color: var(--white);
+  border-color: var(--border2);
+}
+
+.btn-inspect.loading { opacity: .5; cursor: default; }
+
+/* ── format / quality pills ─────────────────────────────────────── */
+.pill-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pill {
+  padding: 8px 18px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--s2);
+  color: var(--grey);
+  font-family: var(--mono);
+  font-size: .75rem;
+  letter-spacing: .06em;
+  cursor: pointer;
+  transition: all .18s;
+  user-select: none;
+}
+
+.pill:hover { border-color: var(--border2); color: var(--white); }
+
+.pill.active {
+  background: var(--red);
+  border-color: var(--red);
+  color: #fff;
+  box-shadow: 0 0 14px var(--red-glow);
+}
+
+/* ── path input ─────────────────────────────────────────────────── */
+.path-row {
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+}
+
+#save-path {
+  flex: 1;
+  background: var(--s2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 11px 16px;
+  color: var(--grey);
+  font-family: var(--mono);
+  font-size: .78rem;
+  outline: none;
+  min-width: 0;
+  transition: border-color .2s;
+}
+
+#save-path:focus {
+  border-color: var(--red);
+  color: var(--white);
+}
+
+.btn-browse {
+  background: var(--s3);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  color: var(--grey);
+  font-family: var(--mono);
+  font-size: .72rem;
+  padding: 11px 16px;
+  cursor: pointer;
+  transition: all .2s;
+  white-space: nowrap;
+}
+
+.btn-browse:hover { color: var(--white); }
+
+/* ── art notice ─────────────────────────────────────────────────── */
+#art-notice {
+  display: none;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255,45,45,.07);
+  border: 1px solid rgba(255,45,45,.18);
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-top: 14px;
+  font-size: .78rem;
+  color: rgba(255,100,100,.9);
+  font-family: var(--mono);
+  animation: fadeIn .25s ease;
+}
+
+#art-notice.show { display: flex; }
+
+#art-notice svg { flex-shrink: 0; }
+
+/* ── download button ────────────────────────────────────────────── */
+.btn-download {
+  width: 100%;
+  padding: 18px;
+  background: var(--red);
+  border: none;
+  border-radius: 12px;
+  color: #fff;
+  font-family: var(--display);
+  font-size: 1.5rem;
+  letter-spacing: .12em;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: background .2s, transform .1s, box-shadow .2s;
+  box-shadow: 0 4px 24px var(--red-glow);
+}
+
+.btn-download::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(255,255,255,.08) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.btn-download:hover:not(:disabled) {
+  background: #e82222;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 32px rgba(255,45,45,.35);
+}
+
+.btn-download:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.btn-download:disabled {
+  opacity: .55;
+  cursor: default;
+  transform: none;
+}
+
+/* ── progress card ──────────────────────────────────────────────── */
+#progress-card {
+  display: none;
+  animation: fadeIn .3s ease;
+}
+
+#progress-card.show { display: block; }
+
+.prog-bar-track {
+  height: 6px;
+  background: var(--s3);
+  border-radius: 999px;
+  overflow: hidden;
+  margin: 14px 0 8px;
+}
+
+.prog-bar-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--red-dim), var(--red));
+  border-radius: 999px;
+  transition: width .4s ease;
+  position: relative;
+}
+
+.prog-bar-fill::after {
+  content: '';
+  position: absolute; right: 0; top: 0; bottom: 0;
+  width: 40px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.25));
+}
+
+.prog-stats {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--mono);
+  font-size: .68rem;
+  color: var(--grey);
+  margin-bottom: 14px;
+}
+
+.prog-stats span b { color: var(--white); font-weight: 500; }
+
+/* ── status message ─────────────────────────────────────────────── */
+#status-msg {
+  font-family: var(--mono);
+  font-size: .75rem;
+  color: var(--grey);
+  min-height: 1.2em;
+  transition: color .2s;
+}
+
+#status-msg.success { color: var(--success); }
+#status-msg.error   { color: var(--red); }
+#status-msg.info    { color: var(--white); }
+
+/* ── log box ────────────────────────────────────────────────────── */
+#log {
+  background: var(--s2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px 16px;
+  height: 148px;
+  overflow-y: auto;
+  font-family: var(--mono);
+  font-size: .70rem;
+  line-height: 1.7;
+  color: var(--grey);
+  margin-top: 14px;
+}
+
+#log::-webkit-scrollbar { width: 4px; }
+#log::-webkit-scrollbar-track { background: transparent; }
+#log::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+
+.log-white  { color: var(--white); }
+.log-red    { color: var(--red); }
+.log-green  { color: var(--success); }
+.log-yellow { color: var(--warn); }
+
+/* ── done banner ────────────────────────────────────────────────── */
+#done-banner {
+  display: none;
+  padding: 18px 22px;
+  background: rgba(45,255,143,.06);
+  border: 1px solid rgba(45,255,143,.2);
+  border-radius: 10px;
+  animation: fadeIn .4s ease;
+}
+
+#done-banner.show { display: block; }
+
+.done-title {
+  font-family: var(--mono);
+  font-size: .7rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--success);
+  margin-bottom: 6px;
+}
+
+.done-filename {
+  font-weight: 600;
+  font-size: .9rem;
+  color: var(--white);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.done-sub {
+  font-family: var(--mono);
+  font-size: .68rem;
+  color: var(--grey);
+  margin-top: 4px;
+}
+
+/* ── options row ────────────────────────────────────────────────── */
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 520px) { .two-col { grid-template-columns: 1fr; } }
+
+/* ── footer ─────────────────────────────────────────────────────── */
+footer {
+  text-align: center;
+  font-family: var(--mono);
+  font-size: .62rem;
+  letter-spacing: .12em;
+  color: var(--grey2);
+  margin-top: 40px;
+}
+
+/* ── spinner ────────────────────────────────────────────────────── */
+@keyframes spin { to { transform: rotate(360deg); } }
+.spin { display: inline-block; animation: spin .8s linear infinite; }
+
+/* ── scrollbar global ───────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- header -->
+  <header>
+    <div class="logo">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+      </div>
+      <h1>YT <span>DOWN</span>LOADER</h1>
+    </div>
+    <p class="tagline">MP3 · MP4 · WebM &nbsp;|&nbsp; Cover art embedded &nbsp;|&nbsp; Powered by yt-dlp</p>
+  </header>
+
+  <!-- URL card -->
+  <div class="card">
+    <div class="card-label">01 &nbsp; Paste URL</div>
+
+    <!-- preview strip -->
+    <div id="preview">
+      <div class="thumb-wrap"><img id="thumb" src="" alt=""/></div>
+      <div class="preview-info">
+        <div class="preview-title" id="prev-title">—</div>
+        <div class="preview-meta" id="prev-meta">—</div>
+      </div>
+    </div>
+
+    <div class="url-row">
+      <input id="url-input" type="url"
+             placeholder="https://www.youtube.com/watch?v=…"/>
+      <button class="btn-inspect" id="btn-inspect" onclick="fetchInfo()">
+        Inspect ▸
+      </button>
+    </div>
+  </div>
+
+  <!-- format + quality -->
+  <div class="two-col">
+
+    <div class="card">
+      <div class="card-label">02 &nbsp; Format</div>
+      <div class="pill-group" id="fmt-group">
+        <div class="pill active" data-fmt="mp4"  onclick="setFmt(this)">MP4</div>
+        <div class="pill"       data-fmt="mp3"  onclick="setFmt(this)">MP3</div>
+        <div class="pill"       data-fmt="webm" onclick="setFmt(this)">WebM</div>
+      </div>
+
+      <!-- cover-art notice -->
+      <div id="art-notice">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="18" height="18" rx="2"/>
+          <circle cx="8.5" cy="8.5" r="1.5"/>
+          <path d="M21 15l-5-5L5 21"/>
+        </svg>
+        Cover art will be embedded into the MP3 via ID3 APIC tag
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-label">03 &nbsp; Quality</div>
+      <div class="pill-group" id="qual-group"></div>
+    </div>
+
+  </div>
+
+  <!-- save path -->
+  <div class="card">
+    <div class="card-label">04 &nbsp; Save to</div>
+    <div class="path-row">
+      <input id="save-path" type="text" value="~/Downloads"
+             placeholder="Destination folder"/>
+      <button class="btn-browse" onclick="document.getElementById('folder-picker').click()">
+        Browse
+      </button>
+      <!-- hidden file input for folder selection -->
+      <input type="file" id="folder-picker" webkitdirectory style="display:none"
+             onchange="folderPicked(this)"/>
+    </div>
+  </div>
+
+
+  <!-- cookie card -->
+  <div class="card" id="cookie-card">
+    <div class="card-label">05 &nbsp; YouTube Account (for private / region-locked)</div>
+
+    <div class="cookie-row">
+      <div class="toggle" id="cookie-toggle" onclick="toggleCookies()"></div>
+      <span class="toggle-label" id="cookie-toggle-label">Use my browser login</span>
+    </div>
+
+    <div class="browser-pills" id="browser-pills">
+      <div class="pill active" data-browser="chrome"  onclick="setBrowser(this)">Chrome</div>
+      <div class="pill"        data-browser="edge"    onclick="setBrowser(this)">Edge</div>
+      <div class="pill"        data-browser="firefox" onclick="setBrowser(this)">Firefox</div>
+      <div class="pill"        data-browser="brave"   onclick="setBrowser(this)">Brave</div>
+    </div>
+
+    <div class="cookie-note" id="cookie-note">
+      yt-dlp will read your browser's saved YouTube login cookie — no password is shared.<br>
+      Make sure you are logged into YouTube in the selected browser before downloading.
+    </div>
+  </div>
+
+  <!-- download button -->
+  <button class="btn-download" id="btn-dl" onclick="startDownload()">
+    ⬇ &nbsp; DOWNLOAD
+  </button>
+
+  <!-- progress card -->
+  <div class="card" id="progress-card" style="margin-top:16px">
+    <div class="card-label">Progress</div>
+
+    <div class="prog-bar-track">
+      <div class="prog-bar-fill" id="prog-fill"></div>
+    </div>
+
+    <!-- playlist track counter -->
+    <div id="track-bar" style="display:none; font-family:var(--mono);
+         font-size:.7rem; color:var(--grey); margin:10px 0 6px;
+         white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+      Track <b id="track-lbl" style="color:var(--white)">—</b>
+      &nbsp;·&nbsp;
+      <span id="track-title-lbl" style="color:var(--grey)">—</span>
+    </div>
+
+    <div class="prog-stats">
+      <span><b id="pct-lbl">0%</b></span>
+      <span>↓ <b id="speed-lbl">—</b> KB/s</span>
+      <span>ETA <b id="eta-lbl">—</b></span>
+      <span><b id="size-lbl">—</b></span>
+    </div>
+
+    <div id="status-msg">Ready.</div>
+
+    <div id="log"></div>
+
+    <!-- done banner -->
+    <div id="done-banner" style="margin-top:14px">
+      <div class="done-title">✔ &nbsp; Saved successfully</div>
+      <div class="done-filename" id="done-title-lbl">—</div>
+      <div class="done-sub" id="done-sub">—</div>
+    </div>
+  </div>
+
+</div><!-- /wrap -->
+
+<footer>YT DOWNLOADER &nbsp;·&nbsp; yt-dlp + ffmpeg &nbsp;·&nbsp; localhost</footer>
+
+<script>
+
+/* ── cookie state ─────────────────────────────────────────────── */
+let useCookies    = false;
+let cookieBrowser = 'chrome';
+
+function toggleCookies() {
+  useCookies = !useCookies;
+  const tog   = document.getElementById('cookie-toggle');
+  const pills = document.getElementById('browser-pills');
+  const note  = document.getElementById('cookie-note');
+  tog.classList.toggle('on', useCookies);
+  pills.classList.toggle('show', useCookies);
+  note.classList.toggle('show', useCookies);
+}
+
+function setBrowser(el) {
+  document.querySelectorAll('#browser-pills .pill')
+    .forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  cookieBrowser = el.dataset.browser;
+}
+
+/* ── state ────────────────────────────────────────────────────── */
+let currentFmt     = 'mp4';
+let currentQuality = 'best';
+let skipCount      = 0;
+
+/* ── quality presets ──────────────────────────────────────────── */
+const Q = {
+  mp4:  [['720p','720'],['1080p','1080'],['Best','best']],
+  webm: [['720p','720'],['1080p','1080'],['Best','best']],
+  mp3:  [['128k','128'],['192k','192'],['320k','320']],
+};
+const QDEF = { mp4:'best', webm:'best', mp3:'192' };
+
+/* ── init ─────────────────────────────────────────────────────── */
+buildQuality();
+
+function setFmt(el) {
+  document.querySelectorAll('#fmt-group .pill')
+    .forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  currentFmt = el.dataset.fmt;
+  buildQuality();
+  document.getElementById('art-notice').classList
+    .toggle('show', currentFmt === 'mp3');
+}
+
+function buildQuality() {
+  const grp = document.getElementById('qual-group');
+  grp.innerHTML = '';
+  const def = QDEF[currentFmt];
+  currentQuality = def;
+  Q[currentFmt].forEach(([label, val]) => {
+    const p = document.createElement('div');
+    p.className = 'pill' + (val === def ? ' active' : '');
+    p.textContent = label;
+    p.onclick = () => {
+      grp.querySelectorAll('.pill').forEach(x => x.classList.remove('active'));
+      p.classList.add('active');
+      currentQuality = val;
+    };
+    grp.appendChild(p);
+  });
+}
+
+/* ── folder picker ────────────────────────────────────────────── */
+function folderPicked(input) {
+  if (input.files.length) {
+    // webkitRelativePath: "folderName/file.ext"
+    const parts = input.files[0].webkitRelativePath.split('/');
+    document.getElementById('save-path').value = parts[0] || '~/Downloads';
+  }
+}
+
+/* ── inspect / preview ────────────────────────────────────────── */
+async function fetchInfo() {
+  const url = document.getElementById('url-input').value.trim();
+  if (!url) return;
+  const btn = document.getElementById('btn-inspect');
+  btn.textContent = '⟳';
+  btn.classList.add('loading');
+  btn.disabled = true;
+  try {
+    const r = await fetch('/api/info', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ url, cookie_browser: useCookies ? cookieBrowser : '' })
+    });
+    const d = await r.json();
+    if (d.error) { log(d.error, 'red'); return; }
+    document.getElementById('thumb').src = d.thumbnail || '';
+    document.getElementById('prev-title').textContent = d.title || '—';
+    document.getElementById('prev-meta').textContent =
+      [d.uploader, d.duration ? fmtDur(d.duration) : null]
+        .filter(Boolean).join(' · ');
+    document.getElementById('preview').classList.add('show');
+  } catch(e) {
+    log('Could not fetch info: ' + e.message, 'red');
+  } finally {
+    btn.textContent = 'Inspect ▸';
+    btn.classList.remove('loading');
+    btn.disabled = false;
+  }
+}
+
+function fmtDur(s) {
+  const m = Math.floor(s/60), sec = s % 60;
+  return `${m}:${String(sec).padStart(2,'0')}`;
+}
+
+/* ── download ─────────────────────────────────────────────────── */
+async function startDownload() {
+  const url    = document.getElementById('url-input').value.trim();
+  const outdir = document.getElementById('save-path').value.trim() || '~/Downloads';
+  if (!url || url === 'https://www.youtube.com/watch?v=…') {
+    setStatus('⚠  Please paste a YouTube URL first.', 'error');
+    return;
+  }
+
+  const btn = document.getElementById('btn-dl');
+  btn.disabled = true;
+  btn.textContent = '⟳  DOWNLOADING…';
+
+  resetUI();
+  document.getElementById('progress-card').classList.add('show');
+  document.getElementById('done-banner').classList.remove('show');
+
+  log(`Starting: ${url}`, 'white');
+  log(`Format: ${currentFmt.toUpperCase()}  Quality: ${currentQuality}`, 'white');
+
+  // 1. start the job
+  let jobId;
+  try {
+    const r = await fetch('/api/start', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ url, format: currentFmt,
+                             quality: currentQuality, outdir,
+                             cookie_browser: useCookies ? cookieBrowser : '' })
+    });
+    const d = await r.json();
+    if (d.error) { setStatus(d.error, 'error'); log(d.error, 'red'); reset(btn); return; }
+    jobId = d.job_id;
+  } catch(e) {
+    setStatus('Server error: ' + e.message, 'error');
+    log(e.message, 'red');
+    reset(btn); return;
+  }
+
+  // 2. stream progress
+  const es = new EventSource(`/api/progress/${jobId}`);
+
+  skipCount = 0;
+
+  es.onmessage = (e) => {
+    const d = JSON.parse(e.data);
+
+    if (d.type === 'progress') {
+      document.getElementById('prog-fill').style.width = d.pct + '%';
+      document.getElementById('pct-lbl').textContent   = d.pct + '%';
+      document.getElementById('speed-lbl').textContent = d.speed || '—';
+      document.getElementById('eta-lbl').textContent   = d.eta ? d.eta + 's' : '—';
+      document.getElementById('size-lbl').textContent  =
+        d.total ? `${d.dled} / ${d.total} MB` : '—';
+      // show track counter for playlists
+      if (d.track) {
+        const tb = document.getElementById('track-bar');
+        if (tb) {
+          tb.style.display = 'block';
+          document.getElementById('track-lbl').textContent = d.track;
+          if (d.track_title)
+            document.getElementById('track-title-lbl').textContent = d.track_title;
+        }
+      }
+      setStatus(`Downloading… ${d.pct}%` + (d.track ? `  [Track ${d.track}]` : ''), 'info');
+    }
+
+    else if (d.type === 'processing') {
+      document.getElementById('prog-fill').style.width = '100%';
+      document.getElementById('pct-lbl').textContent   = '100%';
+      if (d.track) {
+        const tb = document.getElementById('track-bar');
+        if (tb) {
+          tb.style.display = 'block';
+          document.getElementById('track-lbl').textContent = d.track;
+          if (d.track_title)
+            document.getElementById('track-title-lbl').textContent = d.track_title;
+        }
+      }
+      setStatus(d.msg, 'info');
+      log('  ✔ ' + d.msg, 'yellow');
+    }
+
+    else if (d.type === 'skipped') {
+      skipCount++;
+      log('  ⚠ ' + d.msg, 'yellow');
+    }
+
+    else if (d.type === 'done') {
+      es.close();
+      document.getElementById('prog-fill').style.width = '100%';
+      setStatus('✔  All done!', 'success');
+      const artNote = d.fmt === 'mp3' ? '  🎨 Cover art embedded.' : '';
+      const skipNote = skipCount > 0 ? `  (${skipCount} skipped)` : '';
+      log(`  Saved: "${d.title}"${artNote}${skipNote}`, 'green');
+      log(`  → ${d.outdir}`, 'green');
+
+      document.getElementById('done-title-lbl').textContent = d.title;
+      document.getElementById('done-sub').textContent =
+        `${d.fmt.toUpperCase()} · ${d.outdir}` +
+        (d.fmt === 'mp3' ? ' · Cover art embedded' : '') +
+        (skipCount > 0 ? ` · ${skipCount} unavailable skipped` : '');
+      document.getElementById('done-banner').classList.add('show');
+      reset(btn);
+    }
+
+    else if (d.type === 'error') {
+      es.close();
+      setStatus('✘  ' + d.msg, 'error');
+      log('ERROR: ' + d.msg, 'red');
+      reset(btn);
+    }
+  };
+
+  // auto-reconnect if SSE drops mid-playlist
+  es.onerror = () => {
+    es.close();
+    // server is still downloading in background — just show info
+    setStatus('⚠  Connection dropped. Download continues in background.', 'info');
+    log('  Connection lost — server is still downloading. Check your folder.', 'yellow');
+    reset(btn);
+  };
+}
+
+/* ── helpers ──────────────────────────────────────────────────── */
+function reset(btn) {
+  btn.disabled = false;
+  btn.textContent = '⬇  DOWNLOAD';
+}
+
+function resetUI() {
+  document.getElementById('prog-fill').style.width = '0%';
+  document.getElementById('pct-lbl').textContent   = '0%';
+  document.getElementById('speed-lbl').textContent = '—';
+  document.getElementById('eta-lbl').textContent   = '—';
+  document.getElementById('size-lbl').textContent  = '—';
+  document.getElementById('log').innerHTML = '';
+  const tb = document.getElementById('track-bar');
+  if (tb) tb.style.display = 'none';
+  setStatus('Starting…', 'info');
+}
+
+function setStatus(msg, type='') {
+  const el = document.getElementById('status-msg');
+  el.textContent = msg;
+  el.className = type;
+}
+
+function log(msg, cls='') {
+  const box = document.getElementById('log');
+  const line = document.createElement('div');
+  if (cls) line.className = 'log-' + cls;
+  line.textContent = msg;
+  box.appendChild(line);
+  box.scrollTop = box.scrollHeight;
+}
+
+/* ── enter key on URL input ───────────────────────────────────── */
+document.getElementById('url-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') fetchInfo();
+});
+</script>
+</body>
+</html>
