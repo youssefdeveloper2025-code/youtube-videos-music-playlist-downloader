@@ -1,49 +1,106 @@
-YOUTUBE DOWNLOADER — CUSTOM SOURCE-AVAILABLE LICENSE
+# YouTube Downloader Custom License
 
-Copyright (c) 2026 Youssef developer
+**Copyright (c) 2026 Youssef developer**  
+**All rights reserved.**
 
-1. OWNERSHIP
-The original source code, design, documentation, and original assets of this project are owned by the copyright holder identified above, except for third-party components that are separately licensed.
+## 1. Ownership
 
-2. LIMITED PERMISSION
-You are permitted to view and study the source code for personal, educational, and development purposes.
+This software, its original source code, design, and original assets are the intellectual property of **Youssef developer**, unless a specific third-party component is identified under its own license.
 
-You may modify the source code for your own personal use.
+You may not claim this project or substantial portions of its original work as your own.
 
-3. ATTRIBUTION
-If you use, modify, adapt, or incorporate any substantial portion of this project into another project, you must clearly credit the original developer:
+## 2. Use of the Project
 
-Original Developer: YoussefDeveloper2025-code
-Original Project: YouTube Videos Music Playlist Downloader
+You may use this software for lawful and legitimate purposes only.
 
-Where practical, include a link to the original repository.
+You are responsible for your own use of this software and for ensuring that your actions comply with applicable laws, platform rules, copyright laws, and the rights of others.
 
-4. RESTRICTIONS
-Without prior written permission from the copyright holder, you may NOT:
+## 3. Prohibited Use
 
-- Claim the original project or substantial portions of it as your own work.
-- Remove or alter copyright, license, or attribution notices.
-- Redistribute the original source code or a substantial portion of it as a separate project.
-- Sell or commercially exploit the original project or substantial portions of it.
-- Use the project or substantial portions of it in a way intended to facilitate illegal, malicious, harmful, fraudulent, abusive, or unauthorized activity.
-- Present a modified version as an official version of the original project.
+You are **not permitted** to use this project for:
 
-5. MODIFIED VERSIONS
-If permission is granted to redistribute a modified version, the modified version must clearly state that it has been modified and must retain attribution to the original developer.
+* Illegal activities.
+* Malicious or harmful activities.
+* Fraud, scams, or deception.
+* Unauthorized access to accounts, systems, or data.
+* Harassment or abuse.
+* Activities intended to harm individuals, organizations, or services.
+* Any use that violates the rights of others.
 
-6. NO ENDORSEMENT
-Use of this project does not imply sponsorship, approval, endorsement, or affiliation with the original developer.
+Any such use is made **without the authorization or endorsement of the original developer**.
 
-7. THIRD-PARTY COMPONENTS
-This license does not replace or override the licenses of third-party software, libraries, services, or other materials included in or used by the project. Their respective licenses remain applicable.
+## 4. No Claim of Responsibility
 
-8. NO WARRANTY / LIMITATION OF LIABILITY
-THE PROJECT IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED. TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, THE COPYRIGHT HOLDER SHALL NOT BE LIABLE FOR CLAIMS, DAMAGES, LOSSES, OR OTHER LIABILITY ARISING FROM THE USE, MODIFICATION, DISTRIBUTION, OR MISUSE OF THE PROJECT.
+The original developer is not responsible for how third parties use, misuse, modify, distribute, or integrate this software.
 
-9. TERMINATION
-Any permission granted under this license terminates automatically if you violate its terms. Upon termination, you must stop using and distributing the project unless you have another valid legal basis or written permission from the copyright holder.
+Anyone using this software does so at their own responsibility and is solely responsible for the consequences of their actions.
 
-10. CONTACT
-For permissions beyond those granted here, contact the copyright holder through the project's official repository.
+Using this software does not make the original developer responsible for the user's actions.
 
-This license is intended to protect the copyright holder's ownership and attribution rights while making clear that third-party use or misuse is not authorized or endorsed by the original developer.
+## 5. Copying, Modification, and Reuse
+
+You may **not copy, redistribute, sell, sublicense, or incorporate substantial portions of this project into another project without permission from the original developer**, except where applicable law requires otherwise.
+
+Permission for reuse may be requested from the original developer.
+
+## 6. Required Credit
+
+If the original developer gives permission for you to use or modify substantial portions of this project, you must provide clear credit to:
+
+**Original Developer: Youssef developer**  
+**GitHub: youssefdeveloper2025-code**
+
+You must not remove or hide existing copyright or attribution notices.
+
+You must not claim that the original project or its substantial portions were originally created by you.
+
+## 7. Modified Versions
+
+Any authorized modified version must clearly state that it has been modified.
+
+A modified version must not be presented as an official version created, released, or endorsed by the original developer unless the original developer explicitly gives permission.
+
+## 8. Redistribution
+
+You may not redistribute this project, including modified versions or substantial portions of its source code, without permission from the original developer.
+
+If redistribution is authorized, all required copyright, license, and attribution notices must remain intact.
+
+## 9. No Endorsement
+
+Using this software does not mean that **Youssef developer** supports, sponsors, approves, or is affiliated with your project, product, organization, or activities.
+
+## 10. Third-Party Components
+
+This project may use third-party libraries, software, services, or assets.
+
+Those components remain subject to their own licenses and terms. This license does not override or replace any applicable third-party license.
+
+## 11. No Warranty
+
+THIS SOFTWARE IS PROVIDED **“AS IS”**, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED.
+
+The original developer does not guarantee that the software will always work, remain compatible with third-party services, be free of errors, or meet every user's requirements.
+
+## 12. Limitation of Liability
+
+To the maximum extent permitted by applicable law, the original developer shall not be liable for any claims, damages, losses, account restrictions, data loss, or other consequences arising from:
+
+* Use or misuse of this software.
+* Modification of this software.
+* Redistribution of this software.
+* Third-party use of this software.
+* Failure of third-party services.
+* Actions taken by users of this software.
+
+## 13. License Termination
+
+Any permission granted under this license automatically terminates if you violate its terms.
+
+After termination, you must stop any unauthorized use, copying, modification, or distribution of the software.
+
+## 14. Contact
+
+For permissions beyond those granted by this license, contact the original developer through:
+
+**GitHub: YoussefDeveloper2025-code**
