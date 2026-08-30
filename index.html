@@ -606,12 +606,9 @@ footer {
     <div class="path-row">
       <input id="save-path" type="text" value="~/Downloads"
              placeholder="Destination folder"/>
-      <button class="btn-browse" onclick="document.getElementById('folder-picker').click()">
+      <button class="btn-browse" onclick="browseFolder()">
         Browse
       </button>
-      <!-- hidden file input for folder selection -->
-      <input type="file" id="folder-picker" webkitdirectory style="display:none"
-             onchange="folderPicked(this)"/>
     </div>
   </div>
 
@@ -751,11 +748,21 @@ function buildQuality() {
 }
 
 /* ── folder picker ────────────────────────────────────────────── */
-function folderPicked(input) {
-  if (input.files.length) {
-    // webkitRelativePath: "folderName/file.ext"
-    const parts = input.files[0].webkitRelativePath.split('/');
-    document.getElementById('save-path').value = parts[0] || '~/Downloads';
+async function browseFolder() {
+  try {
+    const response = await fetch('/api/browse', {
+      method: 'GET'
+    });
+    const data = await response.json();
+    if (data.path) {
+      document.getElementById('save-path').value = data.path;
+    } else if (data.error) {
+      // User cancelled or error occurred, keep current value
+      console.log('Folder selection cancelled or failed:', data.error);
+    }
+  } catch (error) {
+    console.error('Error browsing for folder:', error);
+    // Keep current value on error
   }
 }
 
