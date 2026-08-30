@@ -2,8 +2,8 @@
 
 A YouTube video, music, and playlist downloader with **two ways to use the project**:
 
-- **Windows EXE** — run the application normally without opening the source code.
-- **HTML/Web version** — open the web interface directly in your browser.
+- **Windows EXE** — run the packaged desktop application.
+- **HTML/Web version** — run the project's Python backend with `start.bat`, then use the HTML interface in your browser.
 
 > **Important:** Only download content you have the right to download. You are responsible for complying with applicable laws, copyright rules, and YouTube/platform terms.
 
@@ -25,8 +25,6 @@ Do **not** run the EXE directly from inside the ZIP archive.
 
 Open the extracted folder and run the `.exe` file.
 
-Windows may display a security warning because the application may not have a commercial code-signing certificate. If you trust the source and downloaded it from the official repository/release, review the warning before continuing.
-
 ### 4. Download content
 
 Enter the YouTube video, music, or playlist URL into the application and select the available download options.
@@ -35,48 +33,60 @@ Follow the application's prompts and wait for the download to finish.
 
 ---
 
-## How to Use the HTML Version
+## How to Use the HTML/Web Version
 
-The project can also be used through its HTML interface.
+**Do not open `index.html` directly.** The HTML interface requires the project's Python/Flask backend to be running in order for downloads to work.
 
-### Option 1 — Open the HTML file
+The easiest way to start everything on Windows is the included **`start.bat`** file.
 
-1. Download or clone the repository.
-2. Open the project folder.
-3. Find the main `.html` file (usually `index.html`).
-4. Double-click it to open it in your browser.
-5. Enter the YouTube URL and use the available controls.
+### 1. Download or clone the repository
 
-### Option 2 — Run it through a local server
-
-For the most reliable experience, especially if the browser blocks local scripts or resources, run the project through a local HTTP server.
-
-For example, if Python is installed:
+Download the project or clone it with Git:
 
 ```bash
-python -m http.server 8000
+git clone https://github.com/youssefdeveloper2025-code/youtube-videos-music-playlist-downloader.git
 ```
 
-Then open:
+### 2. Make sure Python is installed
+
+The HTML version uses Python, Flask, and yt-dlp for the backend.
+
+### 3. Run `start.bat`
+
+Open the project folder and **double-click `start.bat`**.
+
+The batch file will:
+
+1. Check/install the required Python packages (`flask` and `yt-dlp`).
+2. Start the Python/Flask server using `server.py`.
+3. Automatically open the downloader in your browser at:
 
 ```text
-http://localhost:8000
+http://localhost:5000
 ```
 
-Open the page in your browser and use the downloader interface.
+### 4. Use the downloader
+
+Once the browser opens, enter the YouTube video, music, or playlist URL and use the downloader interface.
+
+**Keep the `start.bat` command window open while using the downloader.** Closing it stops the backend server and downloads will no longer work.
+
+### Important
+
+Opening `index.html` by double-clicking it **is not a supported way to download**. The browser interface needs the Flask backend started by `start.bat` and `server.py`.
 
 ---
 
-## EXE vs HTML
+## EXE vs HTML/Web
 
-| Version | Best for | What you need |
+| Version | Best for | How to start |
 |---|---|---|
-| **Windows EXE** | Normal desktop use | Windows PC |
-| **HTML** | Testing, development, or browser use | Web browser + project files |
+| **Windows EXE** | Normal desktop use | Run the `.exe` |
+| **HTML/Web** | Source/development use | Run `start.bat`, then use the browser |
 
 The **EXE version is recommended for normal Windows users** because it is packaged as a desktop application.
 
-The **HTML version is useful for development and testing** or when you want to use the web interface directly.
+The **HTML/Web version requires the Python backend** and is intended for users who want to run the project from its source files.
 
 ---
 
@@ -87,7 +97,8 @@ The **HTML version is useful for development and testing** or when you want to u
 - Playlist support
 - Windows EXE version
 - HTML/web interface
-- Local use options
+- Python/Flask backend
+- yt-dlp integration
 
 Features may vary between releases and versions of the project.
 
@@ -101,12 +112,15 @@ Features may vary between releases and versions of the project.
 - Latest release of the application
 - Internet connection for accessing supported online services
 
-### HTML Version
+### HTML/Web Version
 
+- Windows PC
+- Python installed and available through `python`/`pip`
 - Modern web browser
-- Project files
-- Internet connection for accessing supported online services
-- Python is optional if you want to run a local HTTP server
+- Internet connection
+- The complete project folder, including `start.bat` and `server.py`
+
+`start.bat` automatically runs the package installation command for Flask and yt-dlp.
 
 ---
 
@@ -119,15 +133,21 @@ Features may vary between releases and versions of the project.
 - Try running the EXE again from the extracted folder.
 - Check Windows Security if Windows has blocked the application.
 
-### The HTML version does not work when opened directly
+### The HTML page does not download anything
 
-Try running the project through a local server instead:
+Make sure you **did not open `index.html` directly**.
 
-```bash
-python -m http.server 8000
-```
+Instead:
 
-Then visit `http://localhost:8000`.
+1. Close the directly opened HTML page.
+2. Return to the project folder.
+3. Double-click **`start.bat`**.
+4. Wait for the browser to open `http://localhost:5000`.
+5. Keep the command window open while downloading.
+
+### `start.bat` closes or Python is not recognized
+
+Make sure Python is installed and added to your Windows PATH. Then run `start.bat` again.
 
 ### Downloads do not work
 
