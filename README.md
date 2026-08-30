@@ -1,3 +1,160 @@
+# YouTube Videos Music Playlist Downloader
+
+A YouTube video, music, and playlist downloader with **two ways to use the project**:
+
+- **Windows EXE** — run the application normally without opening the source code.
+- **HTML/Web version** — open the web interface directly in your browser.
+
+> **Important:** Only download content you have the right to download. You are responsible for complying with applicable laws, copyright rules, and YouTube/platform terms.
+
+---
+
+## How to Use the Windows EXE
+
+### 1. Download the EXE release
+
+Go to the project's **Releases** page and download the latest Windows release.
+
+### 2. Extract the release
+
+If the release is provided as a `.zip` file, extract the entire ZIP folder first.
+
+Do **not** run the EXE directly from inside the ZIP archive.
+
+### 3. Start the application
+
+Open the extracted folder and run the `.exe` file.
+
+Windows may display a security warning because the application may not have a commercial code-signing certificate. If you trust the source and downloaded it from the official repository/release, review the warning before continuing.
+
+### 4. Download content
+
+Enter the YouTube video, music, or playlist URL into the application and select the available download options.
+
+Follow the application's prompts and wait for the download to finish.
+
+---
+
+## How to Use the HTML Version
+
+The project can also be used through its HTML interface.
+
+### Option 1 — Open the HTML file
+
+1. Download or clone the repository.
+2. Open the project folder.
+3. Find the main `.html` file (usually `index.html`).
+4. Double-click it to open it in your browser.
+5. Enter the YouTube URL and use the available controls.
+
+### Option 2 — Run it through a local server
+
+For the most reliable experience, especially if the browser blocks local scripts or resources, run the project through a local HTTP server.
+
+For example, if Python is installed:
+
+```bash
+python -m http.server 8000
+```
+
+Then open:
+
+```text
+http://localhost:8000
+```
+
+Open the page in your browser and use the downloader interface.
+
+---
+
+## EXE vs HTML
+
+| Version | Best for | What you need |
+|---|---|---|
+| **Windows EXE** | Normal desktop use | Windows PC |
+| **HTML** | Testing, development, or browser use | Web browser + project files |
+
+The **EXE version is recommended for normal Windows users** because it is packaged as a desktop application.
+
+The **HTML version is useful for development and testing** or when you want to use the web interface directly.
+
+---
+
+## Features
+
+- YouTube video downloading
+- Music/audio downloading
+- Playlist support
+- Windows EXE version
+- HTML/web interface
+- Local use options
+
+Features may vary between releases and versions of the project.
+
+---
+
+## Requirements
+
+### Windows EXE
+
+- Windows PC
+- Latest release of the application
+- Internet connection for accessing supported online services
+
+### HTML Version
+
+- Modern web browser
+- Project files
+- Internet connection for accessing supported online services
+- Python is optional if you want to run a local HTTP server
+
+---
+
+## Troubleshooting
+
+### The EXE does not start
+
+- Make sure you extracted the complete release ZIP.
+- Do not move required files out of the application folder.
+- Try running the EXE again from the extracted folder.
+- Check Windows Security if Windows has blocked the application.
+
+### The HTML version does not work when opened directly
+
+Try running the project through a local server instead:
+
+```bash
+python -m http.server 8000
+```
+
+Then visit `http://localhost:8000`.
+
+### Downloads do not work
+
+Make sure the URL is valid and that you have permission to download the content. Online services can also change their APIs, restrictions, or behavior, which may affect the application.
+
+---
+
+## License
+
+This project is protected by the **YouTube Downloader Custom License** in [`LICENSE`](LICENSE).
+
+The license restricts unauthorized copying, redistribution, selling, sublicensing, and incorporation of substantial portions of the project without permission.
+
+Third-party components remain subject to their own licenses.
+
+---
+
+## Developer
+
+**Youssef developer**  
+GitHub: **YoussefDeveloper2025-code**
+
+Original repository:
+https://github.com/youssefdeveloper2025-code/youtube-videos-music-playlist-downloader
+
+---
+
 # Terms of Use & Developer Notice
 
 ## 1. Developer Rights
