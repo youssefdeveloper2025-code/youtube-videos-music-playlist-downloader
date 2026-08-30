@@ -1,0 +1,3 @@
+flask
+yt-dlp
+pyinstaller
