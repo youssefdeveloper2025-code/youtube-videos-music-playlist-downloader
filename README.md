@@ -118,6 +118,7 @@ Features may vary between releases and versions of the project.
 ### HTML/Web Version
 
 - Windows PC
+- Python 3.8 or newer
 - Python installed and available through `python`/`pip`
 - Modern web browser
 - Internet connection
