@@ -53,6 +53,9 @@ The HTML version uses Python, Flask, and yt-dlp for the backend.
 
 ### 3. Run `start.bat`
 
+Before the server starts, `start.bat` checks for FFmpeg. If the computer does not already have both `ffmpeg` and `ffprobe` available, the project automatically downloads the Windows FFmpeg Essentials runtime into the local `.ffmpeg\\` folder. It is downloaded only once and is not committed to the repository.
+
+
 Open the project folder and **double-click `start.bat`**.
 
 The batch file will:
