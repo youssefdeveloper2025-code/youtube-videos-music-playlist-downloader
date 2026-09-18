@@ -12,6 +12,7 @@ import tempfile
 import urllib.request
 import zipfile
 from pathlib import Path
+from typing import Optional
 
 ROOT = Path(__file__).resolve().parent
 FFMPEG_ROOT = ROOT / ".ffmpeg"
@@ -22,7 +23,7 @@ FFPROBE_EXE = BIN_DIR / "ffprobe.exe"
 DOWNLOAD_URL = "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip"
 CHECKSUM_URL = DOWNLOAD_URL + ".sha256"
 
-def on_path(name: str) -> str | None:
+def on_path(name: str) -> Optional[str]:
     return shutil.which(name)
 
 def valid_local_install() -> bool:
@@ -43,7 +44,7 @@ def download(url: str, destination: Path) -> None:
                 print(f"\r  Downloading FFmpeg... {downloaded * 100 // total:3d}%", end="", flush=True)
     print()
 
-def read_expected_sha256(checksum_file: Path) -> str | None:
+def read_expected_sha256(checksum_file: Path) -> Optional[str]:
     text = checksum_file.read_text(encoding="utf-8", errors="replace").strip()
     for token in text.replace("=", " ").split():
         if len(token) == 64 and all(c in "0123456789abcdefABCDEF" for c in token):
@@ -66,7 +67,7 @@ def safe_extract(zip_path: Path, destination: Path) -> None:
                 raise RuntimeError("The FFmpeg archive contains an unsafe path.")
         archive.extractall(destination)
 
-def find_bin(root: Path) -> Path | None:
+def find_bin(root: Path) -> Optional[Path]:
     for ffmpeg in root.rglob("ffmpeg.exe"):
         candidate = ffmpeg.parent
         if (candidate / "ffprobe.exe").is_file():
