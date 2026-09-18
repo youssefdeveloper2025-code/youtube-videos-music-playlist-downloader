@@ -47,9 +47,14 @@ Download the project or clone it with Git:
 git clone https://github.com/youssefdeveloper2025-code/youtube-videos-music-playlist-downloader.git
 ```
 
-### 2. Make sure Python is installed
+### 2. Python setup is handled by the launcher
 
-The HTML version uses Python, Flask, and yt-dlp for the backend.
+The HTML version uses Python, Flask, and yt-dlp for the backend. `start.bat`
+checks the official Python website on every launch. If Python is missing, it
+offers to download and install the latest stable version from `python.org`.
+If a newer version is available, it shows the installed and available versions
+and asks before installing the update. It never downloads or updates Python
+without confirmation.
 
 ### 3. Run `start.bat`
 
@@ -60,9 +65,12 @@ Open the project folder and **double-click `start.bat`**.
 
 The batch file will:
 
-1. Check/install the required Python packages (`flask` and `yt-dlp`).
-2. Start the Python/Flask server using `server.py`.
-3. Automatically open the downloader in your browser at:
+1. Check for Python updates at the official `python.org` site, or offer to
+   install Python if it is missing.
+2. Check/install the required Python packages (`flask` and `yt-dlp`).
+3. Check/install the local FFmpeg runtime when needed.
+4. Start the Python/Flask server using `server.py` and automatically open the
+   downloader in your browser at:
 
 ```text
 http://localhost:5000
@@ -118,8 +126,7 @@ Features may vary between releases and versions of the project.
 ### HTML/Web Version
 
 - Windows PC
-- Python 3.8 or newer
-- Python installed and available through `python`/`pip`
+- Python 3.8 or newer (the launcher can install it on Windows after asking)
 - Modern web browser
 - Internet connection
 - The complete project folder, including `start.bat` and `server.py`
