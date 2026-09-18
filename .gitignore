@@ -1,0 +1,3 @@
+.ffmpeg/
+__pycache__/
+*.pyc
