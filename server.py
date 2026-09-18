@@ -14,6 +14,11 @@ import uuid
 import subprocess
 from pathlib import Path
 
+try:
+    from setup_ffmpeg import install as ensure_ffmpeg
+except ImportError:
+    ensure_ffmpeg = None
+
 # ── dependencies ──────────────────────────────────────────────────────────────
 
 def ensure_package(import_name, package_name):
@@ -180,6 +185,22 @@ def _run_download(
                 "msg": f"Skipped: {title}"
             })
 
+    # ── local/system FFmpeg detection ─────────────────────────────────────────
+
+    # Prefer the local runtime installed by start.bat so yt-dlp does not
+    # depend on the user's PATH.
+    ffmpeg_location = None
+
+    if ensure_ffmpeg:
+        try:
+            ffmpeg_location = ensure_ffmpeg() or None
+        except Exception as exc:
+            _send(job, {
+                "type": "error",
+                "msg": f"FFmpeg is required for this download. {exc}"
+            })
+            return
+
     # ── base yt-dlp options ───────────────────────────────────────────────────
 
     COMMON = {
@@ -217,6 +238,9 @@ def _run_download(
             }
         },
     }
+
+    if ffmpeg_location:
+        COMMON["ffmpeg_location"] = ffmpeg_location
 
     # ── browser cookies ───────────────────────────────────────────────────────
 
