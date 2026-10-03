@@ -96,8 +96,7 @@ def _inject_separation_ui(html):
   </div>
 """
     if marker in html and 'id="separation-card"' not in html:
-        html = html.replace(marker, card + "
-" + marker, 1)
+        html = html.replace(marker, card + "\\n" + marker, 1)
 
     script = r"""
 <script>
@@ -170,8 +169,7 @@ def _inject_separation_ui(html):
 </script>
 """
     if "</body>" in html and "separationEnabled" not in html:
-        html = html.replace("</body>", script + "
-</body>", 1)
+        html = html.replace("</body>", script + "\\n</body>", 1)
 
     return html
 
