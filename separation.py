@@ -121,6 +121,14 @@ def separate_track(
         str(input_path),
     ]
 
+    # Demucs invokes FFmpeg internally and only searches PATH for it.
+    # The downloader may keep FFmpeg in its private permanent install, so make
+    # that directory visible to Demucs without requiring a global FFmpeg install.
+    env = os.environ.copy()
+    if ffmpeg_location:
+        ffmpeg_dir = str(Path(ffmpeg_location).resolve())
+        env["PATH"] = ffmpeg_dir + os.pathsep + env.get("PATH", "")
+
     try:
         subprocess.run(
             cmd,
@@ -128,6 +136,7 @@ def separate_track(
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,
+            env=env,
         )
     except subprocess.CalledProcessError as exc:
         output = (exc.stdout or "").strip()
