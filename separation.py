@@ -44,6 +44,13 @@ def ensure_demucs():
     except ImportError:
         _pip_install("demucs")
 
+    # Demucs can fall back to torchaudio/SoundFile when FFmpeg cannot decode
+    # a source directly. Install SoundFile as part of the separation runtime.
+    try:
+        import soundfile  # noqa: F401
+    except ImportError:
+        _pip_install("soundfile")
+
 
 def _run_ffmpeg(ffmpeg_location, args):
     """Run ffmpeg from the app's bundled/system FFmpeg location."""
@@ -127,7 +134,16 @@ def separate_track(
     env = os.environ.copy()
     if ffmpeg_location:
         ffmpeg_dir = str(Path(ffmpeg_location).resolve())
+        ffmpeg_exe = Path(ffmpeg_dir) / ("ffmpeg.exe" if os.name == "nt" else "ffmpeg")
+        ffprobe_exe = Path(ffmpeg_dir) / ("ffprobe.exe" if os.name == "nt" else "ffprobe")
+        if not ffmpeg_exe.is_file() or not ffprobe_exe.is_file():
+            raise RuntimeError(
+                "The configured FFmpeg installation is incomplete: "
+                f"{ffmpeg_dir}"
+            )
         env["PATH"] = ffmpeg_dir + os.pathsep + env.get("PATH", "")
+        env["FFMPEG_BINARY"] = str(ffmpeg_exe)
+        env["FFPROBE_BINARY"] = str(ffprobe_exe)
 
     try:
         subprocess.run(
