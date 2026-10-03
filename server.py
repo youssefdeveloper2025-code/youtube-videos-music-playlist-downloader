@@ -95,7 +95,7 @@ def _inject_separation_ui(html):
     </div>
   </div>
 """
-    if marker in html and "id="separation-card"" not in html:
+    if marker in html and 'id="separation-card"' not in html:
         html = html.replace(marker, card + "
 " + marker, 1)
 
