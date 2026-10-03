@@ -17,22 +17,32 @@ import sys
 from pathlib import Path
 
 
-def ensure_demucs():
-    """Install Demucs on first use if it is not already available."""
-    try:
-        import demucs  # noqa: F401
-        return
-    except ImportError:
-        pass
-
+def _pip_install(*packages):
+    """Install runtime packages into the same Python environment as the app."""
     subprocess.check_call([
         sys.executable,
         "-m",
         "pip",
         "install",
         "--upgrade",
-        "demucs",
+        *packages,
     ])
+
+
+def ensure_demucs():
+    """Install/repair Demucs and its NumPy runtime dependency on first use."""
+    # Some Python builds/environments can have Demucs and PyTorch installed
+    # while NumPy is missing. Demucs imports NumPy during startup, so check it
+    # explicitly instead of assuming the Demucs install is complete.
+    try:
+        import numpy  # noqa: F401
+    except ImportError:
+        _pip_install("numpy")
+
+    try:
+        import demucs  # noqa: F401
+    except ImportError:
+        _pip_install("demucs")
 
 
 def _run_ffmpeg(ffmpeg_location, args):
