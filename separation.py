@@ -145,6 +145,43 @@ def separate_track(
         env["FFMPEG_BINARY"] = str(ffmpeg_exe)
         env["FFPROBE_BINARY"] = str(ffprobe_exe)
 
+        # Verify the exact environment that will be inherited by Demucs.
+        # Demucs itself invokes the literal commands "ffmpeg" and "ffprobe",
+        # so merely checking that the files exist is not enough.
+        probe_env = env.copy()
+        probe_env["PATHEXT"] = probe_env.get("PATHEXT", ".COM;.EXE;.BAT;.CMD")
+        resolved_ffmpeg = shutil.which("ffmpeg", path=probe_env["PATH"])
+        resolved_ffprobe = shutil.which("ffprobe", path=probe_env["PATH"])
+        if not resolved_ffmpeg or not resolved_ffprobe:
+            raise RuntimeError(
+                "FFmpeg was installed, but the Demucs process cannot resolve "
+                "ffmpeg/ffprobe from PATH. "
+                f"FFmpeg directory: {ffmpeg_dir}"
+            )
+
+        try:
+            subprocess.run(
+                [str(ffmpeg_exe), "-version"],
+                check=True,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                env=probe_env,
+            )
+            subprocess.run(
+                [str(ffprobe_exe), "-version"],
+                check=True,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                env=probe_env,
+            )
+        except (OSError, subprocess.CalledProcessError) as exc:
+            raise RuntimeError(
+                "The bundled FFmpeg/ffprobe executables could not be started. "
+                f"FFmpeg directory: {ffmpeg_dir}"
+            ) from exc
+
+        env = probe_env
+
     try:
         subprocess.run(
             cmd,
