@@ -47,8 +47,10 @@ if not defined PYTHON_CMD (
 )
 
 set "PYTHON_VERSION="
-for /f "delims=" %%V in ('"%PYTHON_CMD%" %PYTHON_ARGS% -c "import sys; print('.'.join(map(str, sys.version_info[:3])))"') do set "PYTHON_VERSION=%%V"
-
+set "PYTHON_VERSION_FILE=%TEMP%\yt_downloader_python_version.txt"
+"%PYTHON_CMD%" %PYTHON_ARGS% -c "import sys; print('.'.join(map(str, sys.version_info[:3])))" > "%PYTHON_VERSION_FILE%" 2>nul
+if exist "%PYTHON_VERSION_FILE%" set /p PYTHON_VERSION=<"%PYTHON_VERSION_FILE%"
+del "%PYTHON_VERSION_FILE%" >nul 2>&1
 echo.
 echo   Using Python %PYTHON_VERSION%
 echo   Checking for Python updates...
