@@ -117,6 +117,8 @@ def separate_track(
     shutil.rmtree(work_dir, ignore_errors=True)
     work_dir.mkdir(parents=True, exist_ok=True)
 
+    model_name = "htdemucs_ft"
+
     # Demucs writes:
     #   <work_dir>/htdemucs/<track>/vocals.mp3
     #   <work_dir>/htdemucs/<track>/no_vocals.mp3
@@ -199,9 +201,8 @@ def separate_track(
         subprocess.run(
             cmd,
             check=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            text=True,
+            stdout=None,
+            stderr=None,
             env=env,
         )
     except subprocess.CalledProcessError as exc:
