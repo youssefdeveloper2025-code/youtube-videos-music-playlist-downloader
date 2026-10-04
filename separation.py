@@ -122,17 +122,20 @@ def separate_track(
     #   <work_dir>/htdemucs/<track>/no_vocals.mp3
     #
     # --two-stems=vocals produces the vocal stem plus a mixed accompaniment
-    # stem, which is exactly what the downloader needs.
+    # stem, which is exactly what the downloader needs. htdemucs_ft is the
+    # fine-tuned Demucs model and generally gives cleaner source separation
+    # than the standard htdemucs model, at the cost of more processing time.
     cmd = [
         sys.executable,
         "-m",
         "demucs",
-        "--mp3",
-        "--mp3-bitrate",
-        str(quality),
+        # Keep Demucs stems lossless until the final MP3 encode. Encoding
+        # to MP3 here and then encoding again below noticeably damages the
+        # high frequencies and makes the result sound muffled.
+        "--float32",
         "--two-stems=vocals",
         "-n",
-        "htdemucs",
+        "htdemucs_ft",
         "-o",
         str(work_dir),
         str(input_path),
@@ -209,8 +212,8 @@ def separate_track(
         ) from exc
 
     demucs_track = work_dir / "htdemucs" / input_path.stem
-    vocals_src = demucs_track / "vocals.mp3"
-    instrumental_src = demucs_track / "no_vocals.mp3"
+    vocals_src = demucs_track / "vocals.wav"
+    instrumental_src = demucs_track / "no_vocals.wav"
 
     if not vocals_src.exists() or not instrumental_src.exists():
         raise RuntimeError(
