@@ -61,13 +61,21 @@ def _run_ffmpeg(ffmpeg_location, args):
     else:
         ffmpeg = "ffmpeg"
 
-    subprocess.run(
-        [str(ffmpeg), "-y", *args],
-        check=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        text=True,
-    )
+    try:
+        result = subprocess.run(
+            [str(ffmpeg), "-y", *args],
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+        return result
+    except subprocess.CalledProcessError as exc:
+        detail = (exc.stderr or exc.stdout or "").strip()
+        raise RuntimeError(
+            "FFmpeg failed while creating the separated MP3."
+            + (f"\n\n{detail[-3000:]}" if detail else "")
+        ) from exc
 
 
 def _safe_title(value):
@@ -211,6 +219,26 @@ def separate_track(
     vocals_path = output_dir / f"{base} - Vocals.mp3"
     instrumental_path = output_dir / f"{base} - Instrumental.mp3"
 
+    # FFmpeg's MP3 muxer expects embedded artwork as an ID3 APIC image.
+    # YouTube often supplies WebP thumbnails, so normalize the thumbnail to
+    # one JPEG frame first. This avoids relying on the MP3 muxer to interpret
+    # WebP directly and also handles animated WebP safely.
+    cover_jpg = None
+    if thumbnail_path and Path(thumbnail_path).exists():
+        cover_jpg = work_dir / "cover.jpg"
+        _run_ffmpeg(
+            ffmpeg_location,
+            [
+                "-i",
+                str(thumbnail_path),
+                "-frames:v",
+                "1",
+                "-q:v",
+                "2",
+                str(cover_jpg),
+            ],
+        )
+
     def encode(src, dst, stem_name):
         if progress_callback:
             progress_callback(f"Creating {stem_name} MP3...")
@@ -235,14 +263,14 @@ def separate_track(
         if album:
             args += ["-metadata", f"album={album}"]
 
-        if thumbnail_path and Path(thumbnail_path).exists():
+        if cover_jpg and cover_jpg.exists():
             args += [
                 "-i",
-                str(thumbnail_path),
+                str(cover_jpg),
                 "-map",
                 "1:v:0",
                 "-c:v",
-                "mjpeg",
+                "copy",
                 "-disposition:v:0",
                 "attached_pic",
             ]
@@ -250,11 +278,13 @@ def separate_track(
         args.append(str(dst))
         _run_ffmpeg(ffmpeg_location, args)
 
-    encode(vocals_src, vocals_path, "Vocals")
-    encode(instrumental_src, instrumental_path, "Instrumental")
-
-    # Do not leave large temporary Demucs outputs in the download folder.
-    shutil.rmtree(work_dir, ignore_errors=True)
+    try:
+        encode(vocals_src, vocals_path, "Vocals")
+        encode(instrumental_src, instrumental_path, "Instrumental")
+    finally:
+        # Do not leave large temporary Demucs outputs in the download folder,
+        # even if encoding one of the two stems fails.
+        shutil.rmtree(work_dir, ignore_errors=True)
 
     # The original downloaded source is no longer needed after both stems
     # have been encoded.
