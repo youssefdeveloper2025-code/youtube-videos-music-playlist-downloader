@@ -135,7 +135,7 @@ def separate_track(
         "--float32",
         "--two-stems=vocals",
         "-n",
-        "htdemucs_ft",
+        model_name,
         "-o",
         str(work_dir),
         str(input_path),
@@ -211,7 +211,7 @@ def separate_track(
             + (f"\n\n{output[-4000:]}" if output else "")
         ) from exc
 
-    demucs_track = work_dir / "htdemucs" / input_path.stem
+    demucs_track = work_dir / model_name / input_path.stem
     vocals_src = demucs_track / "vocals.wav"
     instrumental_src = demucs_track / "no_vocals.wav"
 
