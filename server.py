@@ -30,6 +30,11 @@ ensure_package("yt_dlp", "yt-dlp")
 from flask import Flask, Response, jsonify, request, send_from_directory
 import yt_dlp
 
+# FFmpeg is installed/located by the permanent FFmpeg setup module.
+# Keep this import here so the downloader can also be launched directly
+# without relying on start.bat having initialized FFmpeg first.
+from setup_ffmpeg import install as ensure_ffmpeg
+
 app = Flask(__name__, static_folder=".", static_url_path="")
 
 JOBS = {}
@@ -81,7 +86,6 @@ def _run_download(
     def progress_hook(d):
         info = d.get("info_dict") or {}
 
-        # Playlist information
         playlist_count = (
             info.get("n_entries")
             or info.get("playlist_count")
@@ -140,7 +144,6 @@ def _run_download(
 
         elif d.get("status") == "finished":
 
-            # Only count actual media downloads.
             filename = d.get("filename") or ""
 
             if filename:
@@ -184,39 +187,28 @@ def _run_download(
 
     ffmpeg_location = None
 
-    if ensure_ffmpeg:
-        try:
-            ffmpeg_location = ensure_ffmpeg() or None
-        except Exception as exc:
-            _send(job, {"type": "error", "msg": f"FFmpeg is required for this download. {exc}"})
-            return
+    try:
+        ffmpeg_location = ensure_ffmpeg() or None
+    except Exception as exc:
+        _send(job, {
+            "type": "error",
+            "msg": f"FFmpeg is required for this download. {exc}"
+        })
+        return
 
     COMMON = {
         "ignoreerrors": False,
-
         "retries": 10,
         "fragment_retries": 10,
-
         "sleep_interval": 1,
         "sleep_interval_requests": 1,
-
         "outtmpl": single_template,
-
-        "progress_hooks": [
-            progress_hook
-        ],
-
+        "progress_hooks": [progress_hook],
         "quiet": False,
         "no_warnings": False,
-
-        # Avoid leaving partial files behind.
         "continuedl": True,
         "nopart": False,
-
-        # Better playlist behavior.
         "noplaylist": False,
-
-        # YouTube extractor settings.
         "extractor_args": {
             "youtube": {
                 "player_client": [
@@ -233,7 +225,6 @@ def _run_download(
     # ── browser cookies ───────────────────────────────────────────────────────
 
     if cookie_browser:
-
         browser = cookie_browser.strip().lower()
 
         valid_browsers = {
@@ -246,10 +237,7 @@ def _run_download(
         }
 
         if browser in valid_browsers:
-
-            COMMON["cookiesfrombrowser"] = (
-                browser,
-            )
+            COMMON["cookiesfrombrowser"] = (browser,)
 
     # ── MP3 ───────────────────────────────────────────────────────────────────
 
@@ -257,36 +245,27 @@ def _run_download(
 
         ydl_opts = {
             **COMMON,
-
-            "format": (
-                "bestaudio/best"
-            ),
-
+            "format": "bestaudio/best",
             "outtmpl": (
                 playlist_template
                 if "list=" in url.lower()
                 else single_template
             ),
-
             "writethumbnail": True,
-
             "postprocessors": [
                 {
                     "key": "FFmpegExtractAudio",
                     "preferredcodec": "mp3",
                     "preferredquality": quality,
                 },
-
                 {
                     "key": "FFmpegMetadata",
                     "add_metadata": True,
                 },
-
                 {
                     "key": "FFmpegThumbnailsConvertor",
                     "format": "jpg",
                 },
-
                 {
                     "key": "EmbedThumbnail",
                     "already_have_thumbnail": False,
@@ -299,14 +278,11 @@ def _run_download(
     else:
 
         if quality == "best":
-
             fmt_string = (
                 "bestvideo+bestaudio/"
                 "best"
             )
-
         else:
-
             fmt_string = (
                 f"bestvideo[height<={quality}]"
                 "+bestaudio/"
@@ -321,15 +297,12 @@ def _run_download(
 
         ydl_opts = {
             **COMMON,
-
             "format": fmt_string,
-
             "outtmpl": (
                 playlist_template
                 if "list=" in url.lower()
                 else single_template
             ),
-
             "merge_output_format": merge_ext,
         }
 
@@ -343,22 +316,18 @@ def _run_download(
         })
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-
             info = ydl.extract_info(
                 url,
                 download=True
             )
 
         if not info:
-
             _send(job, {
                 "type": "error",
                 "msg": "yt-dlp returned no media information."
             })
-
             return
 
-        # Playlist result
         if info.get("_type") == "playlist":
 
             entries = [
@@ -374,7 +343,6 @@ def _run_download(
             )
 
             if successful == 0:
-
                 _send(job, {
                     "type": "error",
                     "msg": (
@@ -382,7 +350,6 @@ def _run_download(
                         "could be downloaded."
                     )
                 })
-
                 return
 
             _send(job, {
@@ -416,12 +383,10 @@ def _run_download(
 
         error_text = str(exc)
 
-        # Make cookie-related errors easier to understand.
         if (
             "cookies" in error_text.lower()
             or "cookie" in error_text.lower()
         ):
-
             error_text = (
                 "Browser login cookies could not be read.\n\n"
                 f"{error_text}\n\n"
@@ -480,7 +445,6 @@ def start():
     ).strip().lower()
 
     if not url:
-
         return jsonify({
             "error": "No URL provided"
         }), 400
@@ -490,20 +454,16 @@ def start():
         "mp4",
         "webm"
     ):
-
         return jsonify({
             "error": "Invalid format"
         }), 400
 
     try:
-
         Path(outdir).mkdir(
             parents=True,
             exist_ok=True
         )
-
     except Exception as exc:
-
         return jsonify({
             "error": (
                 "Could not create output folder: "
@@ -543,7 +503,6 @@ def start():
 def progress(job_id):
 
     if job_id not in JOBS:
-
         return jsonify({
             "error": "Unknown job"
         }), 404
@@ -555,7 +514,6 @@ def progress(job_id):
         while True:
 
             try:
-
                 event = q.get(
                     timeout=60
                 )
@@ -603,7 +561,6 @@ def info():
     ).strip().lower()
 
     if not url:
-
         return jsonify({
             "error": "No URL"
         }), 400
@@ -614,7 +571,6 @@ def info():
         "extract_flat": "in_playlist",
         "skip_download": True,
         "ignoreerrors": False,
-
         "extractor_args": {
             "youtube": {
                 "player_client": [
@@ -626,7 +582,6 @@ def info():
     }
 
     if cookie_browser:
-
         opts["cookiesfrombrowser"] = (
             cookie_browser,
         )
@@ -634,14 +589,12 @@ def info():
     try:
 
         with yt_dlp.YoutubeDL(opts) as ydl:
-
             meta = ydl.extract_info(
                 url,
                 download=False
             )
 
         if not meta:
-
             return jsonify({
                 "error": "Could not extract video information."
             }), 400
@@ -660,27 +613,22 @@ def info():
             ])
 
         return jsonify({
-
             "title": meta.get(
                 "title",
                 ""
             ),
-
             "thumbnail": meta.get(
                 "thumbnail",
                 ""
             ),
-
             "duration": meta.get(
                 "duration",
                 0
             ),
-
             "uploader": meta.get(
                 "uploader",
                 ""
             ),
-
             "count": count,
         })
 
@@ -716,7 +664,6 @@ def browse():
         root.destroy()
 
         if folder_path:
-
             return jsonify({
                 "path": folder_path
             })
