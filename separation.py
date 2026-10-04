@@ -113,6 +113,8 @@ def separate_track(
         progress_callback("Running Demucs source separation...")
 
     work_dir = output_dir / ".separation"
+    # Remove stale temporary output from a previous interrupted separation.
+    shutil.rmtree(work_dir, ignore_errors=True)
     work_dir.mkdir(parents=True, exist_ok=True)
 
     # Demucs writes:
@@ -224,20 +226,6 @@ def separate_track(
     # one JPEG frame first. This avoids relying on the MP3 muxer to interpret
     # WebP directly and also handles animated WebP safely.
     cover_jpg = None
-    if thumbnail_path and Path(thumbnail_path).exists():
-        cover_jpg = work_dir / "cover.jpg"
-        _run_ffmpeg(
-            ffmpeg_location,
-            [
-                "-i",
-                str(thumbnail_path),
-                "-frames:v",
-                "1",
-                "-q:v",
-                "2",
-                str(cover_jpg),
-            ],
-        )
 
     def encode(src, dst, stem_name):
         if progress_callback:
@@ -279,11 +267,26 @@ def separate_track(
         _run_ffmpeg(ffmpeg_location, args)
 
     try:
+        if thumbnail_path and Path(thumbnail_path).exists():
+            cover_jpg = work_dir / "cover.jpg"
+            _run_ffmpeg(
+                ffmpeg_location,
+                [
+                    "-i",
+                    str(thumbnail_path),
+                    "-frames:v",
+                    "1",
+                    "-q:v",
+                    "2",
+                    str(cover_jpg),
+                ],
+            )
+
         encode(vocals_src, vocals_path, "Vocals")
         encode(instrumental_src, instrumental_path, "Instrumental")
     finally:
         # Do not leave large temporary Demucs outputs in the download folder,
-        # even if encoding one of the two stems fails.
+        # even if thumbnail conversion or either MP3 encode fails.
         shutil.rmtree(work_dir, ignore_errors=True)
 
     # The original downloaded source is no longer needed after both stems
