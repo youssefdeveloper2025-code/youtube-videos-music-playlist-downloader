@@ -231,9 +231,21 @@ def separate_track(
         if progress_callback:
             progress_callback(f"Creating {stem_name} MP3...")
 
+        # FFmpeg requires every input (-i) to be declared before output
+        # options such as -map. Keep the cover input beside the audio input,
+        # then map both streams after all inputs have been opened.
         args = [
             "-i",
             str(src),
+        ]
+
+        if cover_jpg and cover_jpg.exists():
+            args += [
+                "-i",
+                str(cover_jpg),
+            ]
+
+        args += [
             "-map",
             "0:a:0",
             "-c:a",
@@ -253,8 +265,6 @@ def separate_track(
 
         if cover_jpg and cover_jpg.exists():
             args += [
-                "-i",
-                str(cover_jpg),
                 "-map",
                 "1:v:0",
                 "-c:v",
