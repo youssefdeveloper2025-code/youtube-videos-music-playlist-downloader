@@ -58,7 +58,7 @@ without confirmation.
 
 ### 3. Run `start.bat`
 
-Before the server starts, `start.bat` checks for FFmpeg. If the computer does not already have both `ffmpeg` and `ffprobe` available, the project automatically downloads the Windows FFmpeg Essentials runtime into the local `.ffmpeg\\` folder. It is downloaded only once and is not committed to the repository.
+Before the server starts, `start.bat` checks for FFmpeg. If the computer does not already have both `ffmpeg` and `ffprobe` available, the project automatically downloads the Windows FFmpeg Essentials runtime into the user's permanent LocalAppData folder (`%LOCALAPPDATA%\\YT Downloader\\ffmpeg\\bin`). It is downloaded only once and is not committed to the repository.
 
 
 Open the project folder and **double-click `start.bat`**.
@@ -110,8 +110,18 @@ The **HTML/Web version requires the Python backend** and is intended for users w
 - HTML/web interface
 - Python/Flask backend
 - yt-dlp integration
+- Optional Demucs vocal/instrumental source separation for MP3 downloads
 
 Features may vary between releases and versions of the project.
+
+### MP3 source separation
+
+When the **Separate vocals and instrumental** option is enabled for an MP3 download, the downloader uses Demucs source separation and creates two files:
+
+- `<title> - Vocals.mp3`
+- `<title> - Instrumental.mp3`
+
+Normal MP3, MP4, and WebM downloads are unchanged when separation is disabled. Demucs and its runtime dependencies are installed only when separation is first used. FFmpeg is kept in the permanent LocalAppData installation so it is not downloaded again on each launch.
 
 ---
 
